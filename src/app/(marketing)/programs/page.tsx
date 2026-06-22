@@ -76,7 +76,7 @@ export default function ProgramsPage() {
                     </div>
                   </div>
                 </dl>
-                <a href="/contact#demo" className="btn-gold mt-6 w-full">
+                <a href={`/register?program=${p.slug}`} className="btn-gold mt-6 w-full">
                   Enroll now
                 </a>
               </div>

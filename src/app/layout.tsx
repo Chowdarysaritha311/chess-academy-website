@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import { Poppins, Inter } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
-import WhatsAppButton from "@/components/layout/WhatsAppButton";
 import { site } from "@/lib/data";
 
 const poppins = Poppins({
@@ -55,6 +52,7 @@ export const metadata: Metadata = {
     description: "FIDE-rated chess coaching for ages 5–18. Book a free demo class.",
   },
   alternates: { canonical: siteUrl },
+  robots: { index: true, follow: true },
 };
 
 const jsonLd = {
@@ -86,12 +84,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className="font-body bg-onyx text-ivory antialiased">
-        <Navbar />
-        <main>{children}</main>
-        <Footer />
-        <WhatsAppButton />
-      </body>
+      <body className="font-body bg-onyx text-ivory antialiased">{children}</body>
     </html>
   );
 }

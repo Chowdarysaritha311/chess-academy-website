@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  // SQLite for local development — zero setup, just works.
+  // For production on Vercel/Railway/Render, switch to "postgresql"
+  // and point DATABASE_URL at a real Postgres instance (Neon, Railway,
+  // Vercel Postgres all have free tiers). SQLite's file storage does
+  // NOT persist on serverless deployments.
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+}
+
+model Lead {
+  id             String   @id @default(cuid())
+  studentName    String
+  parentName     String
+  age            String?
+  school         String?
+  phone          String
+  email          String?
+  experience     String?
+  preferredBatch String?
+  mode           String?
+  // "demo_booking" (from /contact) or "registration" (from /register)
+  source         String
+  // "new" | "contacted" | "enrolled" | "closed"
+  status         String   @default("new")
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}

@@ -1,30 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
+import SectionHeading from "@/components/ui/SectionHeading";
+import { programs } from "@/lib/data";
 
 type FormState = {
   studentName: string;
   parentName: string;
   age: string;
+  school: string;
   phone: string;
   email: string;
   experience: string;
-  mode: string;
+  preferredBatch: string;
 };
 
-const initial: FormState = {
-  studentName: "",
-  parentName: "",
-  age: "",
-  phone: "",
-  email: "",
-  experience: "Beginner — never played",
-  mode: "Online",
-};
+function RegisterForm() {
+  const params = useSearchParams();
+  const preselect = params.get("program");
+  const defaultProgram = programs.find((p) => p.slug === preselect) || programs[0];
 
-export default function DemoBookingForm() {
-  const [form, setForm] = useState<FormState>(initial);
+  const [form, setForm] = useState<FormState>({
+    studentName: "",
+    parentName: "",
+    age: "",
+    school: "",
+    phone: "",
+    email: "",
+    experience: "Beginner — never played",
+    preferredBatch: `${defaultProgram.name} — ${defaultProgram.batchTimings}`,
+  });
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -47,38 +54,37 @@ export default function DemoBookingForm() {
       const res = await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, source: "demo_booking" }),
+        body: JSON.stringify({ ...form, source: "registration" }),
       });
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError(data.error || "Something went wrong. Please try again or WhatsApp us directly.");
+        setError(data.error || "Something went wrong. Please try again.");
         setLoading(false);
         return;
       }
-
       setSubmitted(true);
     } catch {
-      setError("Network error. Please try again or WhatsApp us directly.");
+      setError("Network error. Please try again.");
     }
     setLoading(false);
   }
 
   if (submitted) {
     return (
-      <div className="card-luxe flex flex-col items-center gap-3 p-10 text-center">
+      <div className="card-luxe mx-auto flex max-w-xl flex-col items-center gap-3 p-10 text-center">
         <CheckCircle2 className="text-gold" size={36} />
-        <p className="font-display text-lg font-semibold text-ivory">Demo request received</p>
+        <p className="font-display text-lg font-semibold text-ivory">Registration received</p>
         <p className="font-body text-sm text-ivory/60">
-          Thank you, {form.parentName.split(" ")[0] || "there"} — Coach Sankar's team will reach
-          out on {form.phone} within 24 hours to confirm a time.
+          Thank you — the academy will confirm {form.studentName}'s seat in the selected batch
+          and follow up on {form.phone} shortly.
         </p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="card-luxe space-y-5 p-6 md:p-8">
+    <form onSubmit={handleSubmit} className="card-luxe mx-auto max-w-2xl space-y-5 p-6 md:p-8">
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label="Student name">
           <input
@@ -103,6 +109,14 @@ export default function DemoBookingForm() {
             className="input-luxe"
             placeholder="e.g. 9"
             inputMode="numeric"
+          />
+        </Field>
+        <Field label="School">
+          <input
+            value={form.school}
+            onChange={(e) => update("school", e.target.value)}
+            className="input-luxe"
+            placeholder="Current school"
           />
         </Field>
         <Field label="Phone number">
@@ -134,15 +148,17 @@ export default function DemoBookingForm() {
             <option>Plays in tournaments</option>
           </select>
         </Field>
-        <Field label="Preferred mode">
+        <Field label="Preferred batch">
           <select
-            value={form.mode}
-            onChange={(e) => update("mode", e.target.value)}
+            value={form.preferredBatch}
+            onChange={(e) => update("preferredBatch", e.target.value)}
             className="input-luxe"
           >
-            <option>Online</option>
-            <option>Offline (Visakhapatnam)</option>
-            <option>Either works</option>
+            {programs.map((p) => (
+              <option key={p.slug} value={`${p.name} — ${p.batchTimings}`}>
+                {p.name} — {p.batchTimings}
+              </option>
+            ))}
           </select>
         </Field>
       </div>
@@ -150,12 +166,31 @@ export default function DemoBookingForm() {
       {error && <p className="font-body text-sm text-red-400">{error}</p>}
 
       <button type="submit" disabled={loading} className="btn-gold w-full disabled:opacity-60">
-        {loading ? "Sending…" : "Book my free demo class"}
+        {loading ? "Submitting…" : "Submit registration"}
       </button>
       <p className="text-center font-body text-xs text-ivory/40">
-        No payment required. We'll contact you to schedule the class.
+        No payment required at this stage — the academy will confirm your batch and next steps.
       </p>
     </form>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <section className="section-pad">
+      <SectionHeading
+        move="b4"
+        kicker="Registration"
+        title="Reserve your seat in a batch"
+        subtitle="Choose a program and batch below. This reserves your spot — the academy will confirm details and fees before your first paid class."
+        align="center"
+      />
+      <div className="mt-12">
+        <Suspense>
+          <RegisterForm />
+        </Suspense>
+      </div>
+    </section>
   );
 }
 
